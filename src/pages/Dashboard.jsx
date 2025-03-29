@@ -179,6 +179,135 @@ In conclusion, while the company seems well-positioned with many metrics meeting
     setInfoTooltip(null);
   };
 
+  // Render a data table
+  const renderDataTable = (title, headers, rows) => {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden mb-8">
+        <div className="bg-indigo-600 dark:bg-indigo-800 px-4 py-3">
+          <h2 className="text-xl font-semibold text-white">{title}</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-100 dark:bg-gray-700">
+                {headers.map((header, index) => (
+                  <th key={index} className="px-4 py-2 text-left text-gray-700 dark:text-gray-300">
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, rowIndex) => (
+                <tr key={rowIndex} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                  {row.map((cell, cellIndex) => (
+                    <td key={cellIndex} className="px-4 py-2 text-gray-700 dark:text-gray-300">
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
+  // Render quarters data table
+  const renderQuartersTable = () => {
+    if (!financialData?.quarters?.periods || !financialData?.quarters?.data) return null;
+    
+    const headers = ["Period", ...Object.keys(financialData.quarters.data)];
+    const periods = financialData.quarters.periods;
+    const data = financialData.quarters.data;
+    
+    const rows = periods.map((period, index) => {
+      const row = [period];
+      Object.keys(data).forEach(key => {
+        row.push(data[key][index]);
+      });
+      return row;
+    });
+    
+    return renderDataTable("Quarterly Financials", headers, rows);
+  };
+
+  // Render peers comparison table
+  const renderPeersTable = () => {
+    if (!financialData?.peers?.companies || !financialData?.peers?.headers) return null;
+    
+    const headers = ["Company", ...financialData.peers.headers.map(h => h.name)];
+    const companies = financialData.peers.companies;
+    
+    const rows = companies.map(company => {
+      const row = [company.name];
+      financialData.peers.headers.forEach(header => {
+        row.push(company.metrics[header.name] || "-");
+      });
+      return row;
+    });
+    
+    return renderDataTable("Peer Comparison", headers, rows);
+  };
+
+  // Render profit/loss table
+  const renderProfitLossTable = () => {
+    if (!financialData?.profitLoss?.periods || !financialData?.profitLoss?.data) return null;
+    
+    const headers = ["Year", ...Object.keys(financialData.profitLoss.data)];
+    const periods = financialData.profitLoss.periods;
+    const data = financialData.profitLoss.data;
+    
+    const rows = periods.map((period, index) => {
+      const row = [period];
+      Object.keys(data).forEach(key => {
+        row.push(data[key][index]);
+      });
+      return row;
+    });
+    
+    return renderDataTable("Annual Profit & Loss", headers, rows);
+  };
+
+  // Render balance sheet table
+  const renderBalanceSheetTable = () => {
+    if (!financialData?.balanceSheet?.periods || !financialData?.balanceSheet?.data) return null;
+    
+    const headers = ["Year", ...Object.keys(financialData.balanceSheet.data)];
+    const periods = financialData.balanceSheet.periods;
+    const data = financialData.balanceSheet.data;
+    
+    const rows = periods.map((period, index) => {
+      const row = [period];
+      Object.keys(data).forEach(key => {
+        row.push(data[key][index]);
+      });
+      return row;
+    });
+    
+    return renderDataTable("Balance Sheet", headers, rows);
+  };
+
+  // Render cash flow table
+  const renderCashFlowTable = () => {
+    if (!financialData?.cashFlow?.periods || !financialData?.cashFlow?.data) return null;
+    
+    const headers = ["Year", ...Object.keys(financialData.cashFlow.data)];
+    const periods = financialData.cashFlow.periods;
+    const data = financialData.cashFlow.data;
+    
+    const rows = periods.map((period, index) => {
+      const row = [period];
+      Object.keys(data).forEach(key => {
+        row.push(data[key][index]);
+      });
+      return row;
+    });
+    
+    return renderDataTable("Cash Flow Statement", headers, rows);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-indigo-100 to-indigo-200 dark:from-gray-900 dark:to-gray-800">
@@ -299,6 +428,15 @@ In conclusion, while the company seems well-positioned with many metrics meeting
                       <p key={index} className="mb-4 text-gray-700 dark:text-gray-300">{paragraph}</p>
                     ))}
                   </div>
+                  
+                  {/* Additional financial tables */}
+                  <div className="mt-8">
+                    {renderQuartersTable()}
+                    {renderPeersTable()}
+                    {renderProfitLossTable()}
+                    {renderBalanceSheetTable()}
+                    {renderCashFlowTable()}
+                  </div>
                 </div>
               </div>
             </div>
@@ -314,4 +452,4 @@ In conclusion, while the company seems well-positioned with many metrics meeting
   );
 };
 
-export default FinancialRecordReport;
+export default FinancialRecordReport;2
