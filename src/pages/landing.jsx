@@ -30,6 +30,7 @@ const LandingPage = () => {
 
   useEffect(() => {
     if (selectedCompany) {
+      localStorage.setItem("selectedCompany", selectedCompany.name);
       navigate("/dashboard", {
         state: {
           companyUrl: selectedCompany.url,
