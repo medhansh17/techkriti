@@ -100,7 +100,7 @@ function ModalSearch({ id, searchId, modalOpen, setModalOpen }) {
     }
   };
 
-  // Add to recent searches
+  // Add to recent searches and save selected company
   const addToRecentSearches = (company) => {
     const newRecentSearches = [
       company,
@@ -111,6 +111,8 @@ function ModalSearch({ id, searchId, modalOpen, setModalOpen }) {
       RECENT_SEARCHES_KEY,
       JSON.stringify(newRecentSearches)
     );
+    // Save selected company name to local storage
+    localStorage.setItem("selectedCompany", company.name);
     setModalOpen(false);
   };
 
@@ -203,7 +205,7 @@ function ModalSearch({ id, searchId, modalOpen, setModalOpen }) {
                       <li key={result.id || `search-${result.name}`}>
                         <Link
                           className="flex items-center p-2 text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700/20 rounded-lg"
-                          to={result.url}
+                          to="/dashboard"
                           onClick={() => addToRecentSearches(result)}
                         >
                           <svg
@@ -239,8 +241,11 @@ function ModalSearch({ id, searchId, modalOpen, setModalOpen }) {
                     <li key={`recent-${search.id || search.name}`}>
                       <Link
                         className="flex items-center p-2 text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700/20 rounded-lg"
-                        to={search.url}
-                        onClick={() => setModalOpen(false)}
+                        to="/dashboard"
+                        onClick={() => {
+                          localStorage.setItem("selectedCompany", search.name);
+                          setModalOpen(false);
+                        }}
                       >
                         <svg
                           className="fill-current text-gray-400 dark:text-gray-500 shrink-0 mr-3"
@@ -269,7 +274,7 @@ function ModalSearch({ id, searchId, modalOpen, setModalOpen }) {
                     <li key={`rec-${company.id}`}>
                       <Link
                         className="flex items-center p-2 text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700/20 rounded-lg"
-                        to={company.url}
+                        to="/dashboard"
                         onClick={() => addToRecentSearches(company)}
                       >
                         <svg
