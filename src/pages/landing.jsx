@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import debounce from "lodash.debounce";
+import { Loader2 } from "lucide-react";
 import { searchCompanies } from "../api/modalSearch";
 
 const LandingPage = () => {
@@ -82,9 +83,9 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-white dark:bg-gray-900">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-r from-indigo-100 to-indigo-200 dark:from-gray-900 dark:to-gray-800">
       <div className="relative z-10 w-full max-w-xl px-4 text-center">
-        <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-6">
+        <h1 className="text-5xl font-bold text-gray-800 dark:text-white mb-6">
           Uncover the Real Financial Story
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-300 mb-10">
@@ -105,8 +106,9 @@ const LandingPage = () => {
           {isDropdownOpen && (searchTerm || searchResults.length > 0) && (
             <div className="absolute z-20 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-64 overflow-y-auto">
               {isLoading ? (
-                <div className="p-4 text-center text-gray-500">
-                  Searching...
+                <div className="p-4 text-center text-gray-500 flex justify-center items-center">
+                  <Loader2 className="animate-spin text-indigo-600 dark:text-indigo-400 mr-2" size={20} />
+                  <span>Searching...</span>
                 </div>
               ) : (
                 <ul className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -122,7 +124,7 @@ const LandingPage = () => {
                           href={result.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-indigo-500 underline"
+                          className="text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 underline"
                           onClick={(e) => e.stopPropagation()}
                         >
                           View
@@ -138,30 +140,39 @@ const LandingPage = () => {
           )}
 
           {!searchTerm && (
-            <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+            <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
               Start typing to search for companies...
             </p>
           )}
         </div>
-      </div>
 
-      <style jsx>{`
-        @keyframes wave {
-          0%,
-          100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(10px);
-          }
-        }
-        .animate-wave {
-          animation: wave 8s ease-in-out infinite;
-        }
-        .animate-wave-delayed {
-          animation: wave 8s ease-in-out infinite 2s;
-        }
-      `}</style>
+        <div className="mt-10 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+            Discover Financial Insights
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            Our AI provides comprehensive analysis on:
+          </p>
+          <div className="grid grid-cols-2 gap-4 text-left">
+            <div className="flex items-center">
+              <div className="w-2 h-2 rounded-full bg-indigo-600 dark:bg-indigo-400 mr-2"></div>
+              <span className="text-gray-700 dark:text-gray-300">Valuation Metrics</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-2 h-2 rounded-full bg-indigo-600 dark:bg-indigo-400 mr-2"></div>
+              <span className="text-gray-700 dark:text-gray-300">Profitability</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-2 h-2 rounded-full bg-indigo-600 dark:bg-indigo-400 mr-2"></div>
+              <span className="text-gray-700 dark:text-gray-300">Growth Potential</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-2 h-2 rounded-full bg-indigo-600 dark:bg-indigo-400 mr-2"></div>
+              <span className="text-gray-700 dark:text-gray-300">Financial Health</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
