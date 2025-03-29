@@ -7,6 +7,7 @@ const FinancialRecordReport = () => {
   const [financialData, setFinancialData] = useState(null);
   const [infoTooltip, setInfoTooltip] = useState(null);
   const [expandedCategories, setExpandedCategories] = useState({});
+  const [error, setError] = useState(null);
   
   // Analysis story from the document
   const analysisStory = `Okay, so I need to provide a comprehensive stock analysis for a company in the Banks and NBFC sector based on the given financial data. Let me start by understanding all the provided information and then break it down step by step.
@@ -59,73 +60,35 @@ Areas for further investigation: How does the company's revenue growth compare t
 
 In conclusion, while the company seems well-positioned with many metrics meeting or exceeding benchmarks, potential investors should consider market conditions, sector trends, and their own risk tolerance before making investment decisions.`;
 
-  // Additional financial data
-  const additionalFinancialData = {
-    "Market Cap": "320,366 Cr.",
-    "Revenue Growth": "14.5%",
-    "Net Income": "8,574 Cr.",
-    "Free Cash Flow": "5,200 Cr.",
-    "EBITDA": "12,000 Cr.",
-    "Debt-to-Equity": "0.7",
-    "ROE": "15.3%",
-    "ROA": "1.6%",
-    "Operating Cash Flow": "9,500 Cr.",
-    "P/E Ratio": "22.5",
-    "P/FCF Ratio": "18.2",
-    "EV/EBITDA": "12.5",
-    "Interest Coverage Ratio": "5.2",
-    "Dividend Yield": "2.1%",
-    "Book Value per Share": "45.6",
-    "PEG Ratio": "1.2",
-    "NIM": "3.5%",
-    "Gross NPA": "2.5%",
-    "CAR": "13%",
-    "P/B Ratio": "2.8",
-    "Growth Score": "6.41"
-  };
-
   useEffect(() => {
-    // Simulate loading and fetch data
+    // Fetch data from API
     const fetchData = async () => {
       try {
+        setIsLoading(true);
+        setError(null);
+        
         // Get company name from local storage
         const selectedCompany = localStorage.getItem("selectedCompany") || "Banks and NBFC";
         setCompanyName(selectedCompany);
         
-        // Mock API response with combined data
-        const mockData = {
-          ratios: {
-            ...additionalFinancialData,
-            "Market Cap": "1,82,502 Cr.",
-            "Current Price": "540",
-            "High / Low": "683 / 419 /",
-            "Stock P/E": "68.9",
-            "Book Value": "49.1",
-            "Dividend Yield": "0.19 %",
-            "ROCE": "24.8 %",
-            "ROE": "22.5 %",
-            "Face Value": "2.00",
-            "Sales": "20,008 Cr.",
-            "OPM": "24.1 %",
-            "Profit after tax": "2,648 Cr.",
-            "Piotroski score": "6.00",
-            "G Factor": "6.00",
-            "Altman Z Score": "15.3",
-            "Debt": "2,826 Cr.",
-            "Debt to equity": "0.17",
-            "Return on equity": "22.5 %",
-            "Return on assets": "14.0 %",
-            "Sales growth": "24.7 %",
-            "Profit growth": "25.0 %",
-            "CMP / FCF": "-488",
-            "Inven TO": "3.86",
-            "Int Coverage": "8.26"
-          }
-        };
+        // Make API call to scraper endpoint
+        const response = await fetch('http://localhost:3000/scrapper', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name: selectedCompany }),
+        });
         
-        setFinancialData(mockData);
+        if (!response.ok) {
+          throw new Error(`API request failed with status ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setFinancialData(data);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setError(`Failed to fetch financial data: ${error.message}`);
       } finally {
         setIsLoading(false);
       }
@@ -189,6 +152,15 @@ In conclusion, while the company seems well-positioned with many metrics meeting
     "Shareholder Returns": ["Dividend Yield", "Face Value", "Book Value per Share"]
   };
 
+  // Split categories into left and right columns
+  const leftCategories = Object.fromEntries(
+    Object.entries(financialCategories).slice(0, 3)
+  );
+  
+  const rightCategories = Object.fromEntries(
+    Object.entries(financialCategories).slice(3)
+  );
+
   // Toggle category expansion
   const toggleCategory = (category) => {
     setExpandedCategories({
@@ -223,85 +195,117 @@ In conclusion, while the company seems well-positioned with many metrics meeting
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-indigo-100 to-indigo-200 dark:from-gray-900 dark:to-gray-800">
+        <div className="text-center bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg max-w-md">
+          <div className="text-red-500 text-5xl mb-4">!</div>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Error Loading Data</h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">{error}</p>
+          <button 
+            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none"
+            onClick={() => window.location.reload()}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Function to render ratio category panel
+  const renderRatioPanel = (categories) => (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden h-full">
+      <div className="bg-indigo-600 dark:bg-indigo-800 px-4 py-3">
+        <h2 className="text-xl font-semibold text-white">Financial Ratios</h2>
+      </div>
+      <div className="divide-y divide-gray-200 dark:divide-gray-700">
+        {Object.entries(categories).map(([category, params]) => (
+          <div key={category}>
+            <button
+              className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none"
+              onClick={() => toggleCategory(category)}
+            >
+              <span className="text-lg font-medium text-gray-800 dark:text-white">{category}</span>
+              {expandedCategories[category] ? 
+                <ChevronUp className="text-gray-500" size={20} /> : 
+                <ChevronDown className="text-gray-500" size={20} />
+              }
+            </button>
+            {expandedCategories[category] && (
+              <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700">
+                <table className="w-full">
+                  <tbody>
+                    {params.map(param => (
+                      financialData?.ratios && financialData.ratios[param] ? (
+                        <tr key={param} className="border-b dark:border-gray-600 last:border-0">
+                          <td className="py-3 pr-2 relative">
+                            <div className="flex items-center">
+                              <span className="text-gray-700 dark:text-gray-300">{param}</span>
+                              <button
+                                className="ml-2 text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400"
+                                onMouseEnter={() => showInfo(param)}
+                                onMouseLeave={hideInfo}
+                              >
+                                <Info size={16} />
+                              </button>
+                              {infoTooltip === param && (
+                                <div className="absolute z-10 left-0 top-10 w-64 p-2 bg-gray-800 text-white text-sm rounded shadow-lg">
+                                  {parameterDescriptions[param]}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3 pl-2 text-right font-medium text-indigo-700 dark:text-indigo-300">
+                            {financialData.ratios[param]}
+                          </td>
+                        </tr>
+                      ) : null
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-indigo-100 to-indigo-200 dark:from-gray-900 dark:to-gray-800 p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="w-full mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">{companyName}</h1>
           <p className="text-xl text-gray-600 dark:text-gray-300">Financial Analysis Report</p>
         </div>
 
         {financialData && (
-          <div className="space-y-8">
-            {/* Financial Ratios Accordion */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-              <div className="bg-indigo-600 dark:bg-indigo-800 px-4 py-3">
-                <h2 className="text-xl font-semibold text-white">Financial Ratios</h2>
-              </div>
-              <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                {Object.entries(financialCategories).map(([category, params]) => (
-                  <div key={category}>
-                    <button
-                      className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none"
-                      onClick={() => toggleCategory(category)}
-                    >
-                      <span className="text-lg font-medium text-gray-800 dark:text-white">{category}</span>
-                      {expandedCategories[category] ? 
-                        <ChevronUp className="text-gray-500" size={20} /> : 
-                        <ChevronDown className="text-gray-500" size={20} />
-                      }
-                    </button>
-                    {expandedCategories[category] && (
-                      <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700">
-                        <table className="w-full">
-                          <tbody>
-                            {params.map(param => (
-                              financialData.ratios[param] ? (
-                                <tr key={param} className="border-b dark:border-gray-600 last:border-0">
-                                  <td className="py-3 pr-2 relative">
-                                    <div className="flex items-center">
-                                      <span className="text-gray-700 dark:text-gray-300">{param}</span>
-                                      <button
-                                        className="ml-2 text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400"
-                                        onMouseEnter={() => showInfo(param)}
-                                        onMouseLeave={hideInfo}
-                                      >
-                                        <Info size={16} />
-                                      </button>
-                                      {infoTooltip === param && (
-                                        <div className="absolute z-10 left-0 top-10 w-64 p-2 bg-gray-800 text-white text-sm rounded shadow-lg">
-                                          {parameterDescriptions[param]}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </td>
-                                  <td className="py-3 pl-2 text-right font-medium text-indigo-700 dark:text-indigo-300">
-                                    {financialData.ratios[param]}
-                                  </td>
-                                </tr>
-                              ) : null
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+          <div className="flex flex-col lg:flex-row w-full">
+            {/* Left Column - 15% width */}
+            <div className="lg:w-5/20 lg:pr-4 mb-6 lg:mb-0">
+              {renderRatioPanel(leftCategories)}
             </div>
-
-            {/* Analysis Story */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-              <div className="bg-indigo-600 dark:bg-indigo-800 px-4 py-3">
-                <h2 className="text-xl font-semibold text-white">Detailed Analysis</h2>
-              </div>
-              <div className="p-6">
-                <div className="prose prose-indigo max-w-none dark:prose-invert">
-                  {analysisStory.split('\n\n').map((paragraph, index) => (
-                    <p key={index} className="mb-4 text-gray-700 dark:text-gray-300">{paragraph}</p>
-                  ))}
+            
+            {/* Middle Column - 70% width */}
+            <div className="lg:w-7/10 lg:px-4 mb-6 lg:mb-0">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden h-full">
+                <div className="bg-indigo-600 dark:bg-indigo-800 px-4 py-3">
+                  <h2 className="text-xl font-semibold text-white">Detailed Analysis</h2>
+                </div>
+                <div className="p-6 overflow-auto max-h-screen">
+                  <div className="prose prose-indigo max-w-none dark:prose-invert">
+                    {analysisStory.split('\n\n').map((paragraph, index) => (
+                      <p key={index} className="mb-4 text-gray-700 dark:text-gray-300">{paragraph}</p>
+                    ))}
+                  </div>
                 </div>
               </div>
+            </div>
+            
+            {/* Right Column - 15% width */}
+            <div className="lg:w-5/20 lg:pl-4">
+              {renderRatioPanel(rightCategories)}
             </div>
           </div>
         )}
